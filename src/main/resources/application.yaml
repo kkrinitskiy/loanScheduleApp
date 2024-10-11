@@ -1,0 +1,3 @@
+loan:
+  minAmount: 30000
+  maxAmount: 5000000
