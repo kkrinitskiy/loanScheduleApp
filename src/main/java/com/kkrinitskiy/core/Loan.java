@@ -56,6 +56,7 @@ public class Loan {
             case "a", "d" -> {
                 this.annuityOrDifferentiated = annuityOrDifferentiated;
                 setCredit();
+                System.out.println(credit.getSchedule());
             }
             default -> throw new IllegalArgumentException("Недопустимое значение для графика платежей. " +
                     "\nМожет быть a - annuity (аннуитетный) или d - differentiated (дифференцированный).");
@@ -68,32 +69,10 @@ public class Loan {
             case "a" -> credit = new Annuity();
             case "d" -> credit = new Differentiated();
         }
+        System.out.println("считаем");
         credit.createPaymentSchedule(interestRate, loanPeriodInMonths, loanAmount, loanIssueDate);
     }
-
-    public void printSchedule(){
-        System.out.println(credit.getSchedule());
-    }
-
-    public BigDecimal getLoanAmount() {
-        return loanAmount;
-    }
-
-    public int getLoanPeriodInMonths() {
-        return loanPeriodInMonths;
-    }
-
-    public BigDecimal getInterestRate() {
-        return interestRate;
-    }
-
-    public LocalDate getLoanIssueDate() {
-        return loanIssueDate;
-    }
-
-    public String getAnnuityOrDifferentiated() {
-        return annuityOrDifferentiated;
-    }
+    
 
 }
 

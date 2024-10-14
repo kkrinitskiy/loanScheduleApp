@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 
-public class Annuity implements Credit{
+public class Annuity implements Credit {
     private StringBuilder sb;
 
     public Annuity() {

@@ -11,18 +11,18 @@ public interface Credit {
     static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
-     *  Метод производит расчеты платежей и заполнение таблицы
+     * Метод производит расчеты платежей и заполнение таблицы
      */
     void createPaymentSchedule(BigDecimal interestRate, int loanPeriodInMonths, BigDecimal loanAmount, LocalDate loanIssueDate);
 
     /**
-     *  Метод возвращает таблицу в виде строки с графиком платежей
+     * Метод возвращает таблицу в виде строки с графиком платежей
      */
     String getSchedule();
 
     /**
-     *  Метод для проверки даты внесения платежа - если дата выпадает на выходной или праздник,
-     *  то дата платежа сдвигается на следующий ближайший рабочий день
+     * Метод для проверки даты внесения платежа - если дата выпадает на выходной или праздник,
+     * то дата платежа сдвигается на следующий ближайший рабочий день
      */
     default LocalDate checkDate(LocalDate date) {
         while (date.getDayOfWeek() == DayOfWeek.SATURDAY ||
