@@ -1,16 +1,27 @@
 package com.kkrinitskiy.core.credits;
 
+import com.kkrinitskiy.core.DateAdjuster;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 
-public class Annuity implements Credit {
-    private StringBuilder sb;
 
-    public Annuity() {
-        sb = new StringBuilder();
+public class Annuity implements Credit {
+    private StringBuilder shedule;
+    private DateAdjuster dateAdjuster;
+
+    /**
+     * Реализация интерфейса Credit. Позволяет составить график платежей при аннуитетных платежах по кредиту
+     */
+    public Annuity(DateAdjuster dateAdjuster) {
+        this.dateAdjuster = dateAdjuster;
+        shedule = new StringBuilder();
     }
 
+    /**
+     * Метод производит расчет аннуитетного платежа и заполняет график, хранящийся в StringBuilder sb
+     */
     @Override
     public void createPaymentSchedule(BigDecimal interestRate, int loanPeriodInMonths, BigDecimal loanAmount, LocalDate loanIssueDate) {
         BigDecimal monthlyRate = interestRate.divide(MONTH_IN_YEAR, 10, RoundingMode.HALF_EVEN);
@@ -20,10 +31,10 @@ public class Annuity implements Credit {
         BigDecimal payment = loanAmount.multiply(annuityCoefficient);
         BigDecimal remaining = loanAmount;
 
-        sb.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "Дата", "Платеж", "Проценты", "Основной долг", "Остаток"));
+        shedule.append(String.format(TABLE_HEADER_FORMAT, "Дата", "Платеж", "Проценты", "Основной долг", "Остаток"));
 
         for (int month = 1; month <= loanPeriodInMonths; month++) {
-            LocalDate paymentDate = checkDate(loanIssueDate.plusMonths(month));
+            LocalDate paymentDate = checkDate(dateAdjuster, loanIssueDate.plusMonths(month));
 
             BigDecimal interestPayment = remaining.multiply(monthlyRate).setScale(2, RoundingMode.HALF_EVEN);
             BigDecimal principalPayment;
@@ -37,20 +48,35 @@ public class Annuity implements Credit {
 
             remaining = remaining.subtract(principalPayment).setScale(2, RoundingMode.HALF_EVEN);
 
-            sb.append(String.format("%-15s %-15.2f %-15.2f %-15.2f %-15.2f%n",
-                    paymentDate.format(formatter),
+            fillRow(paymentDate,
                     payment,
                     interestPayment,
                     principalPayment,
-                    remaining));
+                    remaining);
         }
 
         BigDecimal totalPayments = payment.multiply(BigDecimal.valueOf(loanPeriodInMonths)).setScale(2, RoundingMode.HALF_EVEN);
         System.out.println("Общая сумма выплат: " + totalPayments + " рублей");
     }
 
+    private void fillRow(LocalDate paymentDate, BigDecimal fullPayment, BigDecimal loanBodyPayment, BigDecimal principal, BigDecimal remaining) {
+        shedule.append(String.format(TABLE_ROW_FORMAT,
+                paymentDate.format(formatter),
+                fullPayment,
+                loanBodyPayment,
+                principal,
+                remaining
+        ));
+    }
+
+
     @Override
     public String getSchedule() {
-        return sb.toString();
+        return shedule.toString();
+    }
+
+    @Override
+    public LocalDate checkDate(DateAdjuster dateAdjuster, LocalDate date) {
+        return dateAdjuster.adjustDate(date);
     }
 }

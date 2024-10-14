@@ -1,16 +1,23 @@
 package com.kkrinitskiy.core.credits;
 
+import com.kkrinitskiy.core.DateAdjuster;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 
+
 public class Differentiated implements Credit {
+    private StringBuilder shedule;
+    private DateAdjuster dateAdjuster;
 
-    private StringBuilder sb;
-
-    public Differentiated() {
-        sb = new StringBuilder();
+    /**
+     * Реализация интерфейса Credit. Позволяет составить график платежей при дифференцированных платежах по кредиту
+     */
+    public Differentiated(DateAdjuster dateAdjuster) {
+        this.dateAdjuster = dateAdjuster;
+        shedule = new StringBuilder();
     }
 
     @Override
@@ -19,28 +26,33 @@ public class Differentiated implements Credit {
         BigDecimal principal = loanAmount.divide(BigDecimal.valueOf(loanPeriodInMonths), 10, RoundingMode.HALF_EVEN);
 
 
-        sb.append(String.format("%-15s %-15s %-15s %-15s %-15s%n", "Дата", "Платеж", "Проценты", "Основной долг", "Остаток"));
+        shedule.append(String.format(TABLE_HEADER_FORMAT, "Дата", "Платеж", "Проценты", "Основной долг", "Остаток"));
         for (int month = 1; month <= loanPeriodInMonths; month++) {
 
 
             BigDecimal loanBodyPayment = calculateLoanBodyPayment(month, remaining, loanIssueDate, interestRate);
             BigDecimal fullPayment = loanBodyPayment.add(principal);
-            LocalDate paymentDate = checkDate(loanIssueDate.plusMonths(month));
+            LocalDate paymentDate = checkDate(dateAdjuster, loanIssueDate.plusMonths(month));
 
             remaining = remaining.subtract(principal);
 
 
-            sb.append(String.format("%-15s %-15.2f %-15.2f %-15.2f %-15.2f%n",
-                    paymentDate.format(formatter),
-                    fullPayment,
-                    loanBodyPayment,
-                    principal,
-                    remaining
-            ));
+            fillRow(paymentDate, fullPayment, loanBodyPayment, principal, remaining);
 
         }
 
     }
+
+    private void fillRow(LocalDate paymentDate, BigDecimal fullPayment, BigDecimal loanBodyPayment, BigDecimal principal, BigDecimal remaining) {
+        shedule.append(String.format(TABLE_ROW_FORMAT,
+                paymentDate.format(formatter),
+                fullPayment,
+                loanBodyPayment,
+                principal,
+                remaining
+        ));
+    }
+
 
     private BigDecimal calculateLoanBodyPayment(int month, BigDecimal remaining, LocalDate loanIssueDate, BigDecimal interestRate) {
         int daysInMonth = YearMonth.of(loanIssueDate.plusMonths(month).getYear(), loanIssueDate.plusMonths(month).getMonth()).lengthOfMonth();
@@ -54,6 +66,11 @@ public class Differentiated implements Credit {
 
     @Override
     public String getSchedule() {
-        return sb.toString();
+        return shedule.toString();
+    }
+
+    @Override
+    public LocalDate checkDate(DateAdjuster dateAdjuster, LocalDate date) {
+        return dateAdjuster.adjustDate(date);
     }
 }
